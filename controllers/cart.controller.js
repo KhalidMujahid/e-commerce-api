@@ -16,13 +16,11 @@ module.exports.addToCart = async (req, res, next) => {
         product_id,
         customer_id,
       })
-        .then(async (data) => {
-          const result = await data.populate("product_id");
-          return res
+        .then(async (data) =>
+          res
             .status(200)
-            .send(result);
-        })
-        .catch((error) => console.log(error));
+            .send(await data.populate("product_id"))
+        ).catch((error) => console.log(error));
   } catch (error) {
     next(error);
   }
@@ -30,9 +28,7 @@ module.exports.addToCart = async (req, res, next) => {
 
 module.exports.getSingleCart = async (req,res,next) => {
   try{
-
-    const cart = await Cart.find({ customer_id: req.params.id }).populate("product_id");
-    return res.status(200).send(cart)
+    return res.status(200).send(await Cart.find({ customer_id: req.params.id }).populate("product_id"))
   } catch(error){
     next(error);
   }
@@ -44,7 +40,6 @@ module.exports.addToQuatity = async (req,res,next) => {
     const cart = await Cart.findById(req.body.id)
 
     if(cart){
-
       await cart.product_quatity++;
       await cart.save();
       return res.status(200).send(cart._id);
@@ -66,14 +61,13 @@ module.exports.minusToQuatity = async (req,res,next) => {
 
     if(cart){
 
-      if(cart.product_quatity !== 1){
+      if(cart.product_quatity > 1){
         await cart.product_quatity--;
         await cart.save();
         return res.status(200).send(cart._id);
       } else {
-        await Cart.findByIdAndDelete(cart._id).then((data) => {
-          return res.status(200).send(data._id);
-        }).catch(error => {
+        await Cart.findByIdAndDelete(cart._id).then((data) => res.status(200).send(data._id);
+        ).catch(error => {
           return res.status(400).send("An error occured please try again later");
         })
       }
